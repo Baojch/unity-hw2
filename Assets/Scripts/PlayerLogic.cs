@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 public class PlayerLogic : MonoBehaviour
 {
     const float GRAVITY = -1.0f;
-    const float MOVEMENT_SPEED = 5.0f;
+    float MOVEMENT_SPEED = 5.0f;
     const float JUMPFORCE = 5.0f;
     
     //moving
@@ -17,9 +18,21 @@ public class PlayerLogic : MonoBehaviour
     int changing_m_isjumping;//first jump height
     bool secondJump_Lock;
 
+    //knocking
+    float knockbackForce = 200.0f;
+    int is_Knocked = 0;
+
+    int floor_num = 0;
+
+    bool controller_enable = true;
+
+
     CharacterController m_characterController;
+    GameObject m_player;
 
     Vector3 m_movement;
+    Vector3 knock_direction;
+    Vector3 initial_rotation;
 
     Animator m_animator;
 
@@ -28,15 +41,37 @@ public class PlayerLogic : MonoBehaviour
     {
         m_characterController = GetComponent<CharacterController>();
         m_animator = GetComponent<Animator>();
+        m_player = GameObject.FindWithTag("Player");    
         changing_m_isjumping = 4;
+        initial_rotation = transform.rotation.eulerAngles;
     }
 
     // Update is called once per frame
     void Update()
     {
+        
+        if(is_Knocked != 0)
+        {
+            return;
+        }
+        //stick to object
+        if(controller_enable == false && Input.GetKeyDown(KeyCode.Z))
+        {
+            controller_enable = true;
+            m_characterController.enabled = true;
+            m_player.transform.parent = null;
+            transform.rotation = Quaternion.Euler(initial_rotation);
+        }
+        else if(controller_enable == true && Input.GetKeyDown(KeyCode.Z))
+        {
+            controller_enable = false;
+            
+            //setparent code in hit
+        }
+
         m_horizontalInput = Input.GetAxis("Horizontal");
         m_verticalInput = Input.GetAxis("Vertical");
-
+        
         m_animator.SetFloat("Horizontal", m_horizontalInput);
         m_animator.SetFloat("Vertical", m_verticalInput);
 
@@ -59,8 +94,15 @@ public class PlayerLogic : MonoBehaviour
 
     void FixedUpdate()
     {
-        m_movement.x = m_horizontalInput * MOVEMENT_SPEED * Time.deltaTime;
-        m_movement.z = m_verticalInput * MOVEMENT_SPEED * Time.deltaTime;
+        if(is_Knocked != 0){
+            //Debug.Log("knocked");
+            m_movement = knock_direction * knockbackForce * Time.deltaTime;
+            is_Knocked--;
+        }
+        else{
+            m_movement.x = m_horizontalInput * MOVEMENT_SPEED * Time.deltaTime;
+            m_movement.z = m_verticalInput * MOVEMENT_SPEED * Time.deltaTime;
+        }
 
         //jumping logic starts here
         if (m_isJumping != 0)
@@ -90,8 +132,118 @@ public class PlayerLogic : MonoBehaviour
         m_characterController.Move(m_movement);
     }
 
-    void Footstep(int footIndex)
+    private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        Debug.Log("Footstep: " + footIndex);
+        //Debug.Log("Character collided with " + hit.gameObject.name);
+        if(hit.gameObject.CompareTag("followObj") && m_characterController.isGrounded)
+        {
+            if(controller_enable == false){
+                m_player.transform.parent = hit.transform;
+                m_characterController.enabled = false;
+            }
+        }
+        else if(hit.gameObject.CompareTag("ShakingPendulum"))
+        {
+            is_Knocked = 5;
+            knock_direction = transform.position - hit.point;
+            knock_direction.y = 0;
+            //Debug.Log("knocked_direction: " + knock_direction.x+" "+knock_direction.y+" "+knock_direction.z);
+        }
+        
+        //slowerFloor
+        if(hit.gameObject.CompareTag("SlowerFloor") && m_characterController.isGrounded){
+            MOVEMENT_SPEED = 1.0f;
+        }
+        //Floor and save
+        if(hit.gameObject.CompareTag("Floor1") && floor_num<1 && m_characterController.isGrounded){
+            Save();
+            floor_num++;
+            Debug.Log("floor_num: "+floor_num);
+        }
+        else if(hit.gameObject.CompareTag("Floor2") && floor_num<2 && m_characterController.isGrounded){
+            Save();
+            floor_num++;
+            Debug.Log("floor_num: "+floor_num);
+        }
+        else if(hit.gameObject.CompareTag("Floor3") && floor_num<3 && m_characterController.isGrounded){
+            Save();
+            floor_num++;
+            Debug.Log("floor_num: "+floor_num);
+        }
+        else if(hit.gameObject.CompareTag("Floor4") && floor_num<4 && m_characterController.isGrounded){
+            Save();
+            floor_num++;
+            Debug.Log("floor_num: "+floor_num);
+        }
+        else if(hit.gameObject.CompareTag("Floor5") && floor_num<5 && m_characterController.isGrounded){
+            Save();
+            floor_num++;
+            Debug.Log("floor_num: "+floor_num);
+        }
+        else if(hit.gameObject.CompareTag("Floor6") && floor_num<6 && m_characterController.isGrounded){
+            Save();
+            floor_num++;
+            Debug.Log("floor_num: "+floor_num);
+        }
+        else if(hit.gameObject.CompareTag("Floor7") && floor_num<6 && m_characterController.isGrounded){
+            Save();
+            floor_num++;
+            Debug.Log("floor_num: "+floor_num);
+            MOVEMENT_SPEED = 5.0f;
+            changing_m_isjumping = 4;
+        }
+        if(hit.gameObject.CompareTag("TipBox")){
+            // UI tips for QE camera button
+        }
+        else if(hit.gameObject.CompareTag("TipBox2")){
+            // UI tips for Z button
+        }
+
     }
+    
+    public void Save()
+    {
+        // Position
+        PlayerPrefs.SetFloat("PlayerPosX", transform.position.x);
+        PlayerPrefs.SetFloat("PlayerPosY", transform.position.y);
+        PlayerPrefs.SetFloat("PlayerPosZ", transform.position.z);
+
+        // Rotation
+        PlayerPrefs.SetFloat("PlayerRotX", transform.rotation.eulerAngles.x);
+        PlayerPrefs.SetFloat("PlayerRotY", transform.rotation.eulerAngles.y);
+        PlayerPrefs.SetFloat("PlayerRotZ", transform.rotation.eulerAngles.z);
+    }
+
+    public void Load()
+    {
+        // Position
+        float posX = PlayerPrefs.GetFloat("PlayerPosX");
+        float posY = PlayerPrefs.GetFloat("PlayerPosY");
+        float posZ = PlayerPrefs.GetFloat("PlayerPosZ");
+
+        // Rotation
+        float rotX = PlayerPrefs.GetFloat("PlayerRotX");
+        float rotY = PlayerPrefs.GetFloat("PlayerRotY");
+        float rotZ = PlayerPrefs.GetFloat("PlayerRotZ");
+
+        // Set Position
+        m_characterController.enabled = false;
+        transform.position = new Vector3(posX, posY, posZ);
+        m_characterController.enabled = true;
+
+        // Set Rotation
+        transform.rotation = Quaternion.Euler(rotX, rotY, rotZ);
+    }
+
+
+    public void Die(){
+        StartCoroutine(Respawn());
+    }
+    IEnumerator Respawn()
+    {
+        yield return new WaitForSeconds(0.1f);
+        Load();
+        // SaveManager.Instance.Load();
+    }
+
 }

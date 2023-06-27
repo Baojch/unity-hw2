@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class InverseTurningLogic : MonoBehaviour
 {
-    float spinSpeedUp = 15f;
+    float spinSpeedUp = 100f;
     // Start is called before the first frame update
     void Start()
     {
@@ -15,6 +15,10 @@ public class InverseTurningLogic : MonoBehaviour
     void Update()
     {
         // spin
-        transform.Rotate(-Vector3.up, spinSpeedUp * Time.deltaTime);
+        transform.Rotate(-Vector3.forward, spinSpeedUp * Time.deltaTime);
+    }
+    public float getSpinSpeedUp()
+    {
+        return spinSpeedUp;
     }
 }

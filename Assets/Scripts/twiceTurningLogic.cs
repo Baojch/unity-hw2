@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class twiceTurningLogic : MonoBehaviour
 {
-    float spinSpeedUp = 30f;
+    float spinSpeedUp = 160f;
     // Start is called before the first frame update
     void Start()
     {
@@ -15,6 +15,10 @@ public class twiceTurningLogic : MonoBehaviour
     void Update()
     {
         // spin
-        transform.Rotate(Vector3.up, spinSpeedUp * Time.deltaTime);
+        transform.Rotate(Vector3.forward, spinSpeedUp * Time.deltaTime);
+    }
+    public float getSpinSpeedUp()
+    {
+        return spinSpeedUp;
     }
 }
