@@ -33,29 +33,39 @@ public class PlayerLogic : MonoBehaviour
     Vector3 m_movement;
     Vector3 knock_direction;
     Vector3 initial_rotation;
-
+    [SerializeField]
+    GameObject rocket1;
     Animator m_animator;
+
 
     // Start is called before the first frame update
     void Start()
     {
         m_characterController = GetComponent<CharacterController>();
         m_animator = GetComponent<Animator>();
-        m_player = GameObject.FindWithTag("Player");    
+        m_player = GameObject.FindWithTag("Player");
         changing_m_isjumping = 4;
         initial_rotation = transform.rotation.eulerAngles;
+
+
+        // Vector3 pos = new Vector3(-8.1f,3.4f,601f);
+        // Instantiate(rocket1, pos, Quaternion.identity);
+        // Vector3 pos1 = new Vector3(106.5f,3.4f,601f);
+        // Instantiate(rocket1, pos1, Quaternion.identity);
+        // Vector3 pos2 = new Vector3(-111.4f,3.4f,601f);
+        // Instantiate(rocket1, pos2, Quaternion.identity);
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
         if(is_Knocked != 0)
         {
             return;
         }
         //stick to object
-        if(controller_enable == false && Input.GetKeyDown(KeyCode.Z))
+        if(controller_enable == false && (Input.GetKeyDown(KeyCode.Z) || Input.GetButtonDown("Z")) )
         {
             controller_enable = true;
             m_characterController.enabled = true;
@@ -65,7 +75,6 @@ public class PlayerLogic : MonoBehaviour
         else if(controller_enable == true && Input.GetKeyDown(KeyCode.Z))
         {
             controller_enable = false;
-            
             //setparent code in hit
         }
 
@@ -75,7 +84,7 @@ public class PlayerLogic : MonoBehaviour
         m_animator.SetFloat("Horizontal", m_horizontalInput);
         m_animator.SetFloat("Vertical", m_verticalInput);
 
-        if(Input.GetKeyDown(KeyCode.Space) && m_characterController.isGrounded){
+        if((Input.GetKeyDown(KeyCode.Space)  || Input.GetButtonDown("Jump") ) && m_characterController.isGrounded){
             m_isJumping += changing_m_isjumping;
             Debug.Log("m_isJumping");
             secondJump_Lock = false;
@@ -84,7 +93,7 @@ public class PlayerLogic : MonoBehaviour
             m_movement.y =+ GRAVITY * Time.deltaTime;   
         }
         // judge second jump
-        if (Input.GetKeyDown(KeyCode.Space) && !m_characterController.isGrounded && !secondJump_Lock)
+        if ((Input.GetKeyDown(KeyCode.Space)  || Input.GetButtonDown("Jump") )&& !m_characterController.isGrounded && !secondJump_Lock)
         {
             Debug.Log("Second Jump!!!"); 
             m_isJumping += changing_m_isjumping - 1;
@@ -152,7 +161,8 @@ public class PlayerLogic : MonoBehaviour
         
         //slowerFloor
         if(hit.gameObject.CompareTag("SlowerFloor") && m_characterController.isGrounded){
-            MOVEMENT_SPEED = 1.0f;
+            //Debug.Log("SlowerFloor");
+            MOVEMENT_SPEED = 3.0f;
         }
         //Floor and save
         if(hit.gameObject.CompareTag("Floor1") && floor_num<1 && m_characterController.isGrounded){
@@ -184,19 +194,41 @@ public class PlayerLogic : MonoBehaviour
             Save();
             floor_num++;
             Debug.Log("floor_num: "+floor_num);
+            MOVEMENT_SPEED = 5.0f;
+            changing_m_isjumping = 4;
         }
-        else if(hit.gameObject.CompareTag("Floor7") && floor_num<6 && m_characterController.isGrounded){
+        else if(hit.gameObject.CompareTag("Floor7") && floor_num<7 && m_characterController.isGrounded){
             Save();
             floor_num++;
             Debug.Log("floor_num: "+floor_num);
             MOVEMENT_SPEED = 5.0f;
             changing_m_isjumping = 4;
         }
+        else if(hit.gameObject.CompareTag("Floor8") && m_characterController.isGrounded){
+            Save();
+            floor_num++;
+            Debug.Log("floor_num: "+floor_num);
+            MOVEMENT_SPEED = 5.0f;
+            changing_m_isjumping = 4;
+
+            Vector3 pos = new Vector3(-8.1f,3.4f,601f);
+            Instantiate(rocket1, pos, Quaternion.identity);
+            Vector3 pos1 = new Vector3(106.5f,3.4f,601f);
+            Instantiate(rocket1, pos1, Quaternion.identity);
+            Vector3 pos2 = new Vector3(-111.4f,3.4f,601f);
+            Instantiate(rocket1, pos2, Quaternion.identity);
+            //End UI
+            m_characterController.enabled = false;
+            SaveManager.Instance.EndGame();
+        }
+                
         if(hit.gameObject.CompareTag("TipBox")){
             // UI tips for QE camera button
+            SaveManager.Instance.ShowTipImage();
         }
         else if(hit.gameObject.CompareTag("TipBox2")){
             // UI tips for Z button
+            SaveManager.Instance.ShowTipImage2();
         }
 
     }
@@ -226,6 +258,8 @@ public class PlayerLogic : MonoBehaviour
         float rotY = PlayerPrefs.GetFloat("PlayerRotY");
         float rotZ = PlayerPrefs.GetFloat("PlayerRotZ");
 
+        MOVEMENT_SPEED = 5.0f;
+
         // Set Position
         m_characterController.enabled = false;
         transform.position = new Vector3(posX, posY, posZ);
@@ -233,17 +267,24 @@ public class PlayerLogic : MonoBehaviour
 
         // Set Rotation
         transform.rotation = Quaternion.Euler(rotX, rotY, rotZ);
+
+        m_characterController.enabled = false;
+        controller_enable = false;
     }
 
 
     public void Die(){
-        StartCoroutine(Respawn());
+        SaveManager.Instance.Load();
     }
-    IEnumerator Respawn()
+    public void CanMove(){
+        m_characterController.enabled = true;
+        controller_enable = true;
+    }
+    IEnumerator End()
     {
-        yield return new WaitForSeconds(0.1f);
-        Load();
-        // SaveManager.Instance.Load();
+        yield return new WaitForSeconds(1.0f);
+        Debug.Log("End");
+        //End UI
     }
 
 }

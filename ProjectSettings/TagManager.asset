@@ -18,6 +18,10 @@ TagManager:
   - TipBox
   - TipBox2
   - SlowerFloor
+  - Delphox
+  - Pillar
+  - Rocket
+  - Tip1
   layers:
   - Default
   - TransparentFX

@@ -44,20 +44,20 @@ public class CameraLogic : MonoBehaviour
         // m_zOffset -= Input.GetAxis("Mouse ScrollWheel");
         // m_zOffset = Mathf.Clamp(m_zOffset, MIN_Z, MAX_Z);
 
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(KeyCode.Q)|| Input.GetButtonDown("Q"))
         {
             m_rotationY -= 60;
         }
-        else if (Input.GetKeyDown(KeyCode.E))
+        else if (Input.GetKeyDown(KeyCode.E)|| Input.GetButtonDown("E"))
         {
             m_rotationY += 60;
         }
-        if (Input.GetKeyUp(KeyCode.Q))
+        if (Input.GetKeyUp(KeyCode.Q)|| Input.GetButtonUp("Q"))
         {
             m_rotationY += 60;
         }
 
-        if (Input.GetKeyUp(KeyCode.E))
+        if (Input.GetKeyUp(KeyCode.E)|| Input.GetButtonUp("E"))
         {
             m_rotationY -= 60;
         }

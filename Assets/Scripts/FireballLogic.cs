@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class FireballLogic : MonoBehaviour
 {
-    const float SPEED = 4.0f;
+    const float SPEED = 7.0f;
     Rigidbody m_rigidBody;
 
 
@@ -46,7 +46,7 @@ public class FireballLogic : MonoBehaviour
 
     IEnumerator DestroyMyself()
     {
-        yield return new WaitForSeconds(6.0f);
+        yield return new WaitForSeconds(5.0f);
         Destroy(gameObject);
         
     }
